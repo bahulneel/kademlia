@@ -28,12 +28,16 @@
 
 (defn bucket
   [d]
-  (->> d
-       (map byte->bucket)
-       (map-indexed (fn [i v] [(* 8 i) v]))
-       (drop-while #(nil? (second %)))
-       first
-       (apply +)))
+  (let [calc-bucket (fn [b]
+                      (if b
+                        (apply + b)
+                        159))]
+    (->> d
+         (map byte->bucket)
+         (map-indexed (fn [i v] [(* 8 i) v]))
+         (drop-while #(nil? (second %)))
+         first
+         calc-bucket)))
 
 (defn cmp
   [h1 h2]

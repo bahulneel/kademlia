@@ -13,9 +13,20 @@
    :buckets [#{}]
    :peers {}})
 
+(declare update-peer assign-bucket add-peer)
+
 (defn init
   [id]
-  (assoc empty-env :peer (peer id)))
+  (let [peer (peer id)]
+    (-> empty-env
+        (assoc :peer peer)
+        (add-peer peer))))
+
+(defn add-peer
+  [env peer]
+  (-> env
+      (update-peer peer)
+      (assign-bucket peer)))
 
 (defn update-peer
   [env peer]
@@ -36,8 +47,6 @@
         (update-in [:peers] dissoc hash)
         (update-in [:buckets target-bn] disj hash))))
 
-(declare assign-bucket)
-
 (defn add-bucket
   [env]
   (let [bs (:buckets env)
@@ -50,6 +59,7 @@
 (defn assign-bucket
   [env peer]
   (let [h (:hash peer)
+        peer (get-in env [:peers h])
         bs (:buckets env)
         top-bn (dec (count bs))
         target-bn (min top-bn (:bucket peer))
@@ -59,7 +69,7 @@
      ;; We already have this peer
      (b h) env
      ;; We have space in the next bucket
-     (> 8 bc) (update-in env [:buckets target-bn] conj h)
+     (< bc 8) (update-in env [:buckets target-bn] conj h)
      ;; The bucket is full and is the top one
      (= top-bn target-bn) (assign-bucket (add-bucket env) peer)
      ;; Otherwise do nothing
