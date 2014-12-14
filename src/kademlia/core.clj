@@ -62,10 +62,25 @@
      (> 8 bc) (update-in env [:buckets target-bn] conj h)
      ;; The bucket is full and is the top one
      (= top-bn target-bn) (assign-bucket (add-bucket env) peer)
-     ;; Otherwise do nothig
+     ;; Otherwise do nothing
      :else env)))
 
 (defn update-buckets
   [env]
   (->> env :peers vals
        (reduce assign-bucket env)))
+
+(defn find-nearest
+  [env target]
+  (let [{:keys [peers buckets]} env
+        bucket (-> (get-in env [:peer :hash])
+                   (h/distance target)
+                   h/bucket
+                   (min (dec (count buckets)))
+                   buckets)]
+    (->> bucket
+         (map peers)
+         (map (fn [p] (let [hash (:hash p)
+                           distance (h/distance hash target)]
+                       (assoc p :distance distance))))
+         (sort-by :distance h/cmp))))
