@@ -68,5 +68,4 @@
 (defn update-buckets
   [env]
   (->> env :peers vals
-       (sort-by :distance h/cmp)
        (reduce assign-bucket env)))
