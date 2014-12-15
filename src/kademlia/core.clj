@@ -94,3 +94,12 @@
                            distance (h/distance hash target)]
                        (assoc p :distance distance))))
          (sort-by :distance h/cmp))))
+
+(comment
+  (time (let [ids (->> (range 0 200000) (map (partial str "node")))
+              env (init "test")]
+          (find-nearest
+           (->> ids
+                (map peer)
+                (reduce add-peer env))
+           (sha1 "node10")))))
